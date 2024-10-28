@@ -1,0 +1,7 @@
+spring.application.name=backend
+#Configurações do banco
+spring.r2dbc.url=r2dbc:postgresql://localhost:5433/hotel
+spring.r2dbc.username=postgres
+spring.r2dbc.password=postgres
+# Habilitar criação automática de tabelas
+spring.sql.init.mode=always
