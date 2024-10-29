@@ -1,17 +1,15 @@
 package br.com.pedroramon.backend.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import br.com.pedroramon.backend.exception.InvalidDataException;
 import br.com.pedroramon.backend.exception.ResourceNotFoundException;
 import br.com.pedroramon.backend.model.IEntity;
 import br.com.pedroramon.backend.repository.IRepository;
+import br.com.pedroramon.backend.service.interfaces.IService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
- * Classe de serviço genérica para operações de persistência de dados.
+ * Classe abstrata de serviço genérica para operações de persistência de dados.
  *
  * Esta classe implementa a interface {@link IService} e fornece métodos para
  * realizar operações CRUD (Create, Read, Update, Delete) em entidades do tipo
@@ -21,8 +19,8 @@ import reactor.core.publisher.Mono;
  * @param <T> O tipo da entidade que será gerenciada por este serviço, que deve
  *            implementar a interface {@link IEntity}.
  */
-@Service
-public class GenericService<T extends IEntity> implements IService<T> {
+
+public abstract class GenericService<T extends IEntity> implements IService<T> {
 
     private final IRepository<T> repository;
 
@@ -38,9 +36,8 @@ public class GenericService<T extends IEntity> implements IService<T> {
      *                   os dados do tipo {@code T}. Este parâmetro deve ser uma
      *                   implementação da interface {@link IRepository}. A injeção
      *                   deste parâmetro é realizada automaticamente pelo Spring
-     *                   através da anotação {@code @Autowired}.
+     *                   através do construtor.
      */
-    @Autowired
     public GenericService(IRepository<T> repository) {
         this.repository = repository;
     }
