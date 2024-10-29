@@ -2,7 +2,7 @@ package br.com.pedroramon.backend.services;
 
 import br.com.pedroramon.backend.exception.InvalidDataException;
 import br.com.pedroramon.backend.exception.ResourceNotFoundException;
-import br.com.pedroramon.backend.model.IEntity;
+import br.com.pedroramon.backend.model.StatusRoom;
 import br.com.pedroramon.backend.repository.IRepository;
 import br.com.pedroramon.backend.service.GenericService;
 
@@ -24,8 +24,8 @@ import static org.mockito.Mockito.*;
  */
 class GenericServiceTest {
 
-    private IRepository<IEntity> repository;
-    private GenericService<IEntity> service;
+    private IRepository<StatusRoom> repository;
+    private GenericService<StatusRoom> service;
 
     /**
      * Configura o ambiente de teste antes da execução de cada teste.
@@ -36,7 +36,7 @@ class GenericServiceTest {
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(IRepository.class);
-        service = new GenericService<>(repository);
+        service = new GenericService<StatusRoom>(repository) {};
     }
 
     /**
@@ -45,11 +45,11 @@ class GenericServiceTest {
      */
     @Test
     void findAll_ShouldReturnAllEntities() {
-        IEntity entity1 = mock(IEntity.class);
-        IEntity entity2 = mock(IEntity.class);
+        StatusRoom entity1 = new StatusRoom();
+        StatusRoom entity2 = new StatusRoom();
         when(repository.findAll()).thenReturn(Flux.just(entity1, entity2));
 
-        Flux<IEntity> result = service.findAll();
+        Flux<StatusRoom> result = service.findAll();
 
         assertEquals(2, result.count().block());
     }
@@ -60,10 +60,10 @@ class GenericServiceTest {
      */
     @Test
     void findById_ShouldReturnEntity_WhenExists() {
-        IEntity entity = mock(IEntity.class);
+        StatusRoom entity = mock(StatusRoom.class);
         when(repository.findById(1L)).thenReturn(Mono.just(entity));
 
-        Mono<IEntity> result = service.findById(1L);
+        Mono<StatusRoom> result = service.findById(1L);
 
         assertEquals(entity, result.block());
     }
@@ -77,74 +77,74 @@ class GenericServiceTest {
     void findById_ShouldThrowResourceNotFoundException_WhenNotFound() {
         when(repository.findById(1L)).thenReturn(Mono.empty());
 
-        Mono<IEntity> result = service.findById(1L);
+        Mono<StatusRoom> result = service.findById(1L);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, result::block);
         assertEquals("Object not found with id: 1", exception.getMessage());
     }
 
     /**
-     * Testa se o método {@link GenericService#save(IEntity)} retorna a entidade
+     * Testa se o método {@link GenericService#save(StatusRoom)} retorna a entidade
      * salva corretamente. O teste verifica se a entidade retornada é igual à
      * entidade que foi passada como parâmetro.
      */
     @Test
     void save_ShouldReturnSavedEntity() {
-        IEntity entity = mock(IEntity.class);
+        StatusRoom entity = mock(StatusRoom.class);
         when(repository.save(entity)).thenReturn(Mono.just(entity));
 
-        Mono<IEntity> result = service.save(entity);
+        Mono<StatusRoom> result = service.save(entity);
 
         assertEquals(entity, result.block());
     }
 
     /**
-     * Testa se o método {@link GenericService#save(IEntity)} lança uma exceção
+     * Testa se o método {@link GenericService#save(StatusRoom)} lança uma exceção
      * {@link InvalidDataException} quando ocorre um erro durante o salvamento.
      * O teste verifica se a mensagem da exceção corresponde à esperada.
      */
     @Test
     void save_ShouldThrowInvalidDataException_WhenErrorOccurs() {
-        IEntity entity = mock(IEntity.class);
+        StatusRoom entity = mock(StatusRoom.class);
         when(repository.save(entity)).thenReturn(Mono.error(new RuntimeException("Some error")));
 
-        Mono<IEntity> result = service.save(entity);
+        Mono<StatusRoom> result = service.save(entity);
 
         InvalidDataException exception = assertThrows(InvalidDataException.class, result::block);
         assertEquals("Error saving object: Some error", exception.getMessage());
     }
 
     /**
-     * Testa se o método {@link GenericService#update(IEntity)} retorna a entidade
+     * Testa se o método {@link GenericService#update(StatusRoom)} retorna a entidade
      * atualizada corretamente quando a entidade existe. O teste verifica se a
      * entidade retornada é igual à entidade que foi passada como parâmetro.
      */
     @Test
     void update_ShouldReturnUpdatedEntity_WhenExists() {
-        IEntity existingEntity = mock(IEntity.class);
-        IEntity updatedEntity = mock(IEntity.class);
+        StatusRoom existingEntity = mock(StatusRoom.class);
+        StatusRoom updatedEntity = mock(StatusRoom.class);
 
         when(existingEntity.getId()).thenReturn(1L);
         when(repository.findById(1L)).thenReturn(Mono.just(existingEntity));
         when(repository.save(updatedEntity)).thenReturn(Mono.just(updatedEntity));
         when(updatedEntity.getId()).thenReturn(1L);
 
-        Mono<IEntity> result = service.update(updatedEntity);
+        Mono<StatusRoom> result = service.update(updatedEntity);
         assertEquals(updatedEntity, result.block());
     }
 
     /**
-     * Testa se o método {@link GenericService#update(IEntity)} lança uma exceção
+     * Testa se o método {@link GenericService#update(StatusRoom)} lança uma exceção
      * {@link ResourceNotFoundException} quando a entidade a ser atualizada não é encontrada.
      * O teste verifica se a mensagem da exceção corresponde à esperada.
      */
     @Test
     void update_ShouldThrowResourceNotFoundException_WhenNotFound() {
-        IEntity updatedEntity = mock(IEntity.class);
+        StatusRoom updatedEntity = mock(StatusRoom.class);
         when(updatedEntity.getId()).thenReturn(1L);
         when(repository.findById(1L)).thenReturn(Mono.empty());
 
-        Mono<IEntity> result = service.update(updatedEntity);
+        Mono<StatusRoom> result = service.update(updatedEntity);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, result::block);
         assertEquals("Object not found with id: 1", exception.getMessage());
