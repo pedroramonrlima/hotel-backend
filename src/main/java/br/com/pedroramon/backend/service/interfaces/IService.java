@@ -1,4 +1,4 @@
-package br.com.pedroramon.backend.service;
+package br.com.pedroramon.backend.service.interfaces;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
