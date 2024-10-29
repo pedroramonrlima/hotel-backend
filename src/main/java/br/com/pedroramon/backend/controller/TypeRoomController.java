@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.pedroramon.backend.dto.TypeRomRequest;
 import br.com.pedroramon.backend.dto.TypeRomResponse;
 import br.com.pedroramon.backend.mapper.TypeRoomMapper;
-import br.com.pedroramon.backend.model.TypeRoom;
-import br.com.pedroramon.backend.service.GenericService;
+import br.com.pedroramon.backend.service.TypeRoomService;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -25,7 +24,7 @@ import reactor.core.publisher.Mono;
  * Disponibiliza endpoints para operações de criação, leitura, atualização e
  * exclusão (CRUD) de objetos TypeRoom.
  * 
- * Utiliza um serviço genérico para manipulação dos dados e um mapeador para
+ * Utiliza um serviço para manipulação dos dados e um mapeador para
  * conversão entre as entidades de modelo e os objetos de transferência de dados
  * (DTOs).
  * 
@@ -40,14 +39,14 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/type-rooms")
 public class TypeRoomController {
     
-    private final GenericService<TypeRoom> service;
+    private final TypeRoomService service;
 
     /**
-     * Construtor para injetar o serviço genérico de manipulação de tipos de quartos.
+     * Construtor para injetar o serviço de manipulação de tipos de quartos.
      * 
-     * @param typeRoomService Serviço genérico para operações CRUD de tipos de quartos.
+     * @param typeRoomService Serviço para operações CRUD de tipos de quartos.
      */
-    public TypeRoomController(GenericService<TypeRoom> typeRoomService) {
+    public TypeRoomController(TypeRoomService typeRoomService) {
         this.service = typeRoomService;
     }
 

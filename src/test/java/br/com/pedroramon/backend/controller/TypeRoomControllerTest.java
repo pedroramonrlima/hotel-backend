@@ -4,7 +4,8 @@ import br.com.pedroramon.backend.dto.TypeRomRequest;
 import br.com.pedroramon.backend.dto.TypeRomResponse;
 import br.com.pedroramon.backend.exception.ResourceNotFoundException;
 import br.com.pedroramon.backend.model.TypeRoom;
-import br.com.pedroramon.backend.service.GenericService;
+import br.com.pedroramon.backend.service.TypeRoomService;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ class TypeRoomControllerTest {
     private WebTestClient webTestClient;
 
     @MockBean
-    private GenericService<TypeRoom> service;
+    private TypeRoomService service;
 
     /**
      * Testa o endpoint GET para recuperar todos os tipos de quartos.
