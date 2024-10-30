@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 
 public abstract class GenericService<T extends IEntity> implements IService<T> {
 
-    private final IRepository<T> repository;
+    protected final IRepository<T> repository;
 
     /**
      * Construtor da classe {@code GenericService}.
