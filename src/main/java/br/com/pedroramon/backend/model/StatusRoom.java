@@ -79,7 +79,7 @@ public class StatusRoom implements IEntity {
      * 
      * @param description a nova descrição do status do quarto
      */
-    public void setetDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
