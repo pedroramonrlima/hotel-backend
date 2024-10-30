@@ -8,6 +8,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Representa um tipo de quarto no sistema.
  *
@@ -54,6 +56,7 @@ public class TypeRoom implements IEntity {
      *
      * @return O ID do tipo de quarto.
      */
+    @JsonIgnore
     public Long getTypeRoomId() {
         return typeRoomId;
     }

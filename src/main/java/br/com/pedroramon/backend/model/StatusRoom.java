@@ -8,6 +8,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * A classe {@code StatusRoom} representa o status de um quarto no sistema.
  * Ela implementa a interface {@code IEntity} e mapeia a tabela {@code status_room}
@@ -52,6 +54,7 @@ public class StatusRoom implements IEntity {
      * 
      * @return o ID do status do quarto
      */
+    @JsonIgnore
     public Long getStatusRoomId() {
         return statusRomId;
     }
