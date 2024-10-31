@@ -11,16 +11,17 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Classe de teste para o serviço genérico {@link GenericService}.
- *
- * Esta classe contém os testes unitários para garantir que os métodos do
+ * 
+ * Esta classe contém testes unitários para garantir que os métodos do
  * {@link GenericService} funcionem corretamente. Utiliza o framework Mockito
- * para simular o repositório e o framework JUnit para a execução dos testes.
+ * para simular o repositório e o framework JUnit para a execução dos testes,
+ * além de utilizar o StepVerifier para testar comportamentos reativos.
  */
 class GenericServiceTest {
 
@@ -41,7 +42,7 @@ class GenericServiceTest {
 
     /**
      * Testa se o método {@link GenericService#findAll()} retorna todas as entidades.
-     * O teste verifica se a contagem das entidades retornadas é igual a 2.
+     * O teste verifica se as entidades retornadas correspondem às esperadas.
      */
     @Test
     void findAll_ShouldReturnAllEntities() {
@@ -49,23 +50,23 @@ class GenericServiceTest {
         StatusRoom entity2 = new StatusRoom();
         when(repository.findAll()).thenReturn(Flux.just(entity1, entity2));
 
-        Flux<StatusRoom> result = service.findAll();
-
-        assertEquals(2, result.count().block());
+        StepVerifier.create(service.findAll())
+                .expectNext(entity1, entity2)
+                .verifyComplete();
     }
 
     /**
      * Testa se o método {@link GenericService#findById(Long)} retorna a entidade
-     * quando ela existe. O teste verifica se a entidade retornada é igual à esperada.
+     * quando ela existe. O teste verifica se a entidade retornada é a esperada.
      */
     @Test
     void findById_ShouldReturnEntity_WhenExists() {
-        StatusRoom entity = mock(StatusRoom.class);
+        StatusRoom entity = new StatusRoom();
         when(repository.findById(1L)).thenReturn(Mono.just(entity));
 
-        Mono<StatusRoom> result = service.findById(1L);
-
-        assertEquals(entity, result.block());
+        StepVerifier.create(service.findById(1L))
+                .expectNext(entity)
+                .verifyComplete();
     }
 
     /**
@@ -77,10 +78,10 @@ class GenericServiceTest {
     void findById_ShouldThrowResourceNotFoundException_WhenNotFound() {
         when(repository.findById(1L)).thenReturn(Mono.empty());
 
-        Mono<StatusRoom> result = service.findById(1L);
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, result::block);
-        assertEquals("Object not found with id: 1", exception.getMessage());
+        StepVerifier.create(service.findById(1L))
+                .expectErrorMatches(throwable -> throwable instanceof ResourceNotFoundException &&
+                                                  throwable.getMessage().equals("Object not found with id: 1"))
+                .verify();
     }
 
     /**
@@ -90,12 +91,12 @@ class GenericServiceTest {
      */
     @Test
     void save_ShouldReturnSavedEntity() {
-        StatusRoom entity = mock(StatusRoom.class);
+        StatusRoom entity = new StatusRoom();
         when(repository.save(entity)).thenReturn(Mono.just(entity));
 
-        Mono<StatusRoom> result = service.save(entity);
-
-        assertEquals(entity, result.block());
+        StepVerifier.create(service.save(entity))
+                .expectNext(entity)
+                .verifyComplete();
     }
 
     /**
@@ -105,13 +106,13 @@ class GenericServiceTest {
      */
     @Test
     void save_ShouldThrowInvalidDataException_WhenErrorOccurs() {
-        StatusRoom entity = mock(StatusRoom.class);
+        StatusRoom entity = new StatusRoom();
         when(repository.save(entity)).thenReturn(Mono.error(new RuntimeException("Some error")));
 
-        Mono<StatusRoom> result = service.save(entity);
-
-        InvalidDataException exception = assertThrows(InvalidDataException.class, result::block);
-        assertEquals("Error saving object: Some error", exception.getMessage());
+        StepVerifier.create(service.save(entity))
+                .expectErrorMatches(throwable -> throwable instanceof InvalidDataException &&
+                                                  throwable.getMessage().equals("Error saving object: Some error"))
+                .verify();
     }
 
     /**
@@ -121,16 +122,17 @@ class GenericServiceTest {
      */
     @Test
     void update_ShouldReturnUpdatedEntity_WhenExists() {
-        StatusRoom existingEntity = mock(StatusRoom.class);
-        StatusRoom updatedEntity = mock(StatusRoom.class);
+        StatusRoom existingEntity = new StatusRoom();
+        existingEntity.setId(1L);
+        StatusRoom updatedEntity = new StatusRoom();
+        updatedEntity.setId(1L);
 
-        when(existingEntity.getId()).thenReturn(1L);
         when(repository.findById(1L)).thenReturn(Mono.just(existingEntity));
         when(repository.save(updatedEntity)).thenReturn(Mono.just(updatedEntity));
-        when(updatedEntity.getId()).thenReturn(1L);
 
-        Mono<StatusRoom> result = service.update(updatedEntity);
-        assertEquals(updatedEntity, result.block());
+        StepVerifier.create(service.update(updatedEntity))
+                .expectNext(updatedEntity)
+                .verifyComplete();
     }
 
     /**
@@ -140,14 +142,14 @@ class GenericServiceTest {
      */
     @Test
     void update_ShouldThrowResourceNotFoundException_WhenNotFound() {
-        StatusRoom updatedEntity = mock(StatusRoom.class);
-        when(updatedEntity.getId()).thenReturn(1L);
+        StatusRoom updatedEntity = new StatusRoom();
+        updatedEntity.setId(1L);
         when(repository.findById(1L)).thenReturn(Mono.empty());
 
-        Mono<StatusRoom> result = service.update(updatedEntity);
-
-        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, result::block);
-        assertEquals("Object not found with id: 1", exception.getMessage());
+        StepVerifier.create(service.update(updatedEntity))
+                .expectErrorMatches(throwable -> throwable instanceof ResourceNotFoundException &&
+                                                  throwable.getMessage().equals("Object not found with id: 1"))
+                .verify();
     }
 
     /**
@@ -159,8 +161,7 @@ class GenericServiceTest {
     void delete_ShouldComplete_WhenEntityExists() {
         when(repository.deleteById(1L)).thenReturn(Mono.empty());
 
-        Mono<Void> result = service.delete(1L);
-
-        assertDoesNotThrow(() -> result.block());
+        StepVerifier.create(service.delete(1L))
+                .verifyComplete();
     }
 }
