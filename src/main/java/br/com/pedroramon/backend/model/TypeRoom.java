@@ -32,6 +32,15 @@ public class TypeRoom implements IEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public TypeRoom(long id, String name) {
+        this.typeRoomId = id;
+        this.name = name;
+    }
+
+    public TypeRoom(){
+        
+    }
+
     /**
      * Obtém a data de criação da entidade.
      *

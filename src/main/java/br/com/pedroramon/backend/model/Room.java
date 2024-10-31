@@ -37,6 +37,17 @@ public class Room implements IEntity {
     @Transient
     private StatusRoom statusRoom;
 
+    public Room (){
+        
+    }
+    public Room(Long roomId, Integer roomNumber, BigDecimal dailyRate, Long typeRoomId, Long statusRoomId) {
+        this.roomId = roomId;
+        this.roomNumber = roomNumber;
+        this.dailyRate = dailyRate;
+        this.typeRoomId = typeRoomId;
+        this.statusRoomId = statusRoomId;
+    }
+
     /**
      * Obtém o ID do quarto.
      *

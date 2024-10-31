@@ -30,6 +30,16 @@ public class StatusRoom implements IEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public StatusRoom(long id, String description) {
+        
+        this.statusRomId = id;
+        this.description = description;
+    }
+
+    public StatusRoom(){
+        
+    }
+
     /**
      * Obtém a data de criação do status do quarto.
      * 

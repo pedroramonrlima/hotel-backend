@@ -124,9 +124,9 @@ public class RoomService extends GenericService<Room> implements IRoomService {
      */
     @Override
     public Mono<Room> save(Room room) {
-        return validateDailyRate(room.getDailyRate())
-                .then(checkRoomNumberUniqueness(room.getRoomNumber()))
-                .then(retrieveDependenciesAndSave(room, super::save));
+        return checkRoomNumberUniqueness(room.getRoomNumber())
+                .then(validateDailyRate(room.getDailyRate()))
+                .then(Mono.defer(() -> retrieveDependenciesAndSave(room, super::save))); 
     }
 
     /**
@@ -169,11 +169,9 @@ public class RoomService extends GenericService<Room> implements IRoomService {
      * @return Um {@link Mono} vazio se único, ou um erro se já existir.
      */
     private Mono<Void> checkRoomNumberUniqueness(Integer roomNumber) {
-        return this.findByRoomNumber(roomNumber)
-                .hasElement()
-                .flatMap(exists -> exists 
-                        ? Mono.error(new IllegalArgumentException("Já existe um quarto com o número informado!")) 
-                        : Mono.empty());
+        return this.repository.findByRoomNumber(roomNumber)
+            .flatMap(existingRoom -> Mono.defer(() -> Mono.error(new IllegalArgumentException("Já existe um quarto com o número informado!"))))
+            .then(); // Convertendo para Mono<Void>
     }
 
     /**
@@ -195,15 +193,14 @@ public class RoomService extends GenericService<Room> implements IRoomService {
      * @return Um {@link Mono} com o quarto salvo ou atualizado.
      */
     private Mono<Room> retrieveDependenciesAndSave(Room room, Function<Room, Mono<Room>> saveOrUpdate) {
-        return Mono.zip(
-                typeRoomService.findById(room.getTypeRoomId()),
-                statusRoomService.findById(room.getStatusRoomId())
-            )
-            .flatMap(tuple -> {
-                room.setTypeRoom(tuple.getT1());
-                room.setStatusRoom(tuple.getT2());
-                return saveOrUpdate.apply(room);
-            });
+        return typeRoomService.findById(room.getTypeRoomId())
+                .zipWith(statusRoomService.findById(room.getStatusRoomId()), (typeRoom, statusRoom) -> {
+                    room.setTypeRoom(typeRoom);
+                    room.setStatusRoom(statusRoom);
+                    return room;
+                })
+                .flatMap(saveOrUpdate)
+                .onErrorResume(e -> Mono.error(new ResourceNotFoundException("Tipo ou Status do quarto não encontrado para os IDs fornecidos")));
     }
 
     
