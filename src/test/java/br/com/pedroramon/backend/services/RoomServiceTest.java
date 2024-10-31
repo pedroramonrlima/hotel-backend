@@ -24,6 +24,14 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
+/**
+ * Teste da classe {@link RoomService}.
+ *
+ * Esta classe contém testes unitários para os métodos da {@link RoomService},
+ * utilizando o framework Mockito para simular as dependências e verificar o comportamento
+ * da classe sob diferentes cenários.
+ *
+ */
 class RoomServiceTest {
 
     @Mock
@@ -40,12 +48,21 @@ class RoomServiceTest {
 
     private Room room;
 
+    /**
+     * Inicializa os objetos e mocks necessários antes de cada teste.
+     */
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         room = new Room(1L, 101, new BigDecimal("60.00"), 1L, 1L);
     }
 
+    /**
+     * Testa o método {@link RoomService#findById(Long)}.
+     *
+     * Verifica se o método retorna a sala correta quando um ID válido é fornecido.
+     *
+     */
     @Test
     void testFindById() {
         when(roomRepository.findById(anyLong())).thenReturn(Mono.just(room));
@@ -58,9 +75,15 @@ class RoomServiceTest {
         assert(result.block()).equals(room);
     }
 
-   @Test
-    void testFindAllRoom(){
-        
+    /**
+     * Testa o método {@link RoomService#findAll()}.
+     *
+     * Verifica se todas as salas são retornadas corretamente e se os
+     * tipos e status das salas estão sendo carregados como esperado.
+     *
+     */
+    @Test
+    void testFindAllRoom() {
         TypeRoom typeRoom = new TypeRoom(1L, "Single");
         StatusRoom statusRoom = new StatusRoom(1L, "Available");
 
@@ -77,6 +100,12 @@ class RoomServiceTest {
         verify(statusRoomService).findById(room.getStatusRoomId());
     }
 
+    /**
+     * Testa o método {@link RoomService#findByRoomNumber(Integer)}.
+     *
+     * Verifica se o quarto correto é retornada quando um número de sala válido é fornecido.
+     *
+     */
     @Test
     void testFindByRoomNumber() {
         when(roomRepository.findByRoomNumber(anyInt())).thenReturn(Mono.just(room));
@@ -89,9 +118,14 @@ class RoomServiceTest {
         assert(result.block()).equals(room);
     }
 
+    /**
+     * Testa o método {@link RoomService#save(Room)}.
+     *
+     * Verifica se uma novo quarto é salvo corretamente e se o tipo e status são associados.
+     *
+     */
     @Test
     void testSave() {
-        
         Room newRoom = new Room(null, 102, new BigDecimal("60.00"), 1L, 1L);
         TypeRoom typeRoom = new TypeRoom(1L, "Single");
         StatusRoom statusRoom = new StatusRoom(1L, "Available");
@@ -102,10 +136,10 @@ class RoomServiceTest {
         when(statusRoomService.findById(newRoom.getStatusRoomId())).thenReturn(Mono.just(statusRoom));
 
         StepVerifier.create(roomService.save(newRoom))
-                .expectNextMatches(savedRoom -> 
-                    savedRoom.getRoomNumber() == newRoom.getRoomNumber() &&
-                    savedRoom.getTypeRoom().equals(typeRoom) && 
-                    savedRoom.getStatusRoom().equals(statusRoom))
+                .expectNextMatches(savedRoom ->
+                        savedRoom.getRoomNumber() == newRoom.getRoomNumber() &&
+                                savedRoom.getTypeRoom().equals(typeRoom) &&
+                                savedRoom.getStatusRoom().equals(statusRoom))
                 .verifyComplete();
 
         verify(roomRepository).findByRoomNumber(newRoom.getRoomNumber());
@@ -114,14 +148,20 @@ class RoomServiceTest {
         verify(statusRoomService).findById(newRoom.getStatusRoomId());
     }
 
+    /**
+     * Testa o método {@link RoomService#save(Room)} ao tentar salvar um quarto com número existente.
+     *
+     * Verifica se uma exceção é lançada com a mensagem apropriada ao tentar salvar um quarto
+     * que já existe.
+     *
+     */
     @Test
     void testSaveRoomWithExistingRoomNumber() {
-        
         Room newRoom = new Room(1L, 101, new BigDecimal("60.00"), 1L, 1L);
         when(roomRepository.findByRoomNumber(room.getRoomNumber())).thenReturn(Mono.just(room));
         when(typeRoomService.findById(anyLong())).thenReturn(Mono.empty());
         when(statusRoomService.findById(anyLong())).thenReturn(Mono.empty());
-        
+
         StepVerifier.create(roomService.save(room))
                 .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException &&
                         throwable.getMessage().equals("Já existe um quarto com o número informado!"))
