@@ -14,7 +14,7 @@ Tecnologias Utilizadas
 Pré-requisitos
 --------------
 Certifique-se de que você tenha as seguintes ferramentas instaladas:
-- Java 11 ou superior
+- Java 17 ou superior
 - Maven
 - Docker (opcional, caso deseje rodar o PostgreSQL em contêiner)
 
