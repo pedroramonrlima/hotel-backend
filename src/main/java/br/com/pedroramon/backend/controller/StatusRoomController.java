@@ -13,10 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.pedroramon.backend.dto.StatusRoomRequest;
-import br.com.pedroramon.backend.dto.StatusRoomResponse;
+import br.com.pedroramon.backend.dto.StatusRoomDTO;
 import br.com.pedroramon.backend.dto.interfaces.OnUpdate;
-import br.com.pedroramon.backend.mapper.StatusRoomMapper;
+import br.com.pedroramon.backend.mapper.MapperFactory;
 import br.com.pedroramon.backend.service.StatusRoomService;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
@@ -27,7 +26,8 @@ import reactor.core.publisher.Mono;
  * Disponibiliza endpoints para operações de criação, leitura, atualização e
  * exclusão (CRUD) de objetos StatusRoom.
  * 
- * Utiliza um serviço para manipulação dos dados e um mapeador para conversão entre
+ * Utiliza um serviço para manipulação dos dados e um mapeador para conversão
+ * entre
  * as entidades de modelo e os objetos de transferência de dados (DTOs).
  * 
  * Endpoints disponíveis:
@@ -42,6 +42,7 @@ import reactor.core.publisher.Mono;
 public class StatusRoomController {
 
     private final StatusRoomService statusRoomService;
+    private final MapperFactory mapperFactory;
 
     /**
      * Construtor para injetar o serviço de manipulação do status dos quartos.
@@ -49,42 +50,47 @@ public class StatusRoomController {
      * @param statusRoomService Serviço para operações CRUD de status de quartos.
      */
     @Autowired
-    public StatusRoomController(StatusRoomService statusRoomService) {
+    public StatusRoomController(StatusRoomService statusRoomService, MapperFactory mapperFactory) {
         this.statusRoomService = statusRoomService;
+        this.mapperFactory = mapperFactory;
     }
 
     /**
      * Recupera todos os status de quartos.
      * 
-     * @return Um fluxo (Flux) de objetos StatusRoomResponse representando todos os status dos quartos.
+     * @return Um fluxo (Flux) de objetos StatusRoomDTO representando todos os
+     *         status dos quartos.
      */
     @GetMapping
-    public Flux<StatusRoomResponse> getAllStatusRooms() {
-        return statusRoomService.findAll().map(StatusRoomMapper::fromStatusRoomToResponse);
+    public Flux<StatusRoomDTO> getAllStatusRooms() {
+        return statusRoomService.findAll().map(this.mapperFactory.getStatusRoomMapper()::toDto);
     }
 
     /**
      * Recupera um status específico de quarto pelo seu ID.
      * 
      * @param id O ID do status do quarto a ser recuperado.
-     * @return Um Mono de StatusRoomResponse representando o status de quarto com o ID especificado.
+     * @return Um Mono de StatusRoomDTO representando o status de quarto com o ID
+     *         especificado.
      */
     @GetMapping("/{id}")
-    public Mono<StatusRoomResponse> findById(@PathVariable Long id) {
+    public Mono<StatusRoomDTO> findById(@PathVariable Long id) {
         return statusRoomService.findById(id)
-                   .map(StatusRoomMapper::fromStatusRoomToResponse);
+                .map(this.mapperFactory.getStatusRoomMapper()::toDto);
     }
 
     /**
      * Cria um novo status de quarto.
      * 
-     * @param request Objeto StatusRoomRequest com os dados do status de quarto a ser criado.
-     * @return Um ResponseEntity contendo um Mono de StatusRoomResponse representando o status de quarto criado.
+     * @param request Objeto StatusRoomDTO com os dados do status de quarto a ser
+     *                criado.
+     * @return Um ResponseEntity contendo um Mono de StatusRoomDTO representando o
+     *         status de quarto criado.
      */
     @PostMapping
-    public ResponseEntity<Mono<StatusRoomResponse>> create(@Valid @RequestBody StatusRoomRequest request){
-        var statusRomResponse = statusRoomService.save(StatusRoomMapper.fromRequestToStatusRoom(request))
-                             .map(StatusRoomMapper::fromStatusRoomToResponse);
+    public ResponseEntity<Mono<StatusRoomDTO>> create(@Valid @RequestBody StatusRoomDTO request) {
+        var statusRomResponse = statusRoomService.save(this.mapperFactory.getStatusRoomMapper().toEntity(request))
+                .map(this.mapperFactory.getStatusRoomMapper()::toDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(statusRomResponse);
     }
@@ -92,13 +98,15 @@ public class StatusRoomController {
     /**
      * Atualiza um status de quarto existente.
      * 
-     * @param request Objeto StatusRoomRequest com os dados atualizados do status de quarto.
-     * @return Um ResponseEntity contendo um Mono de StatusRoomResponse representando o status de quarto atualizado.
+     * @param request Objeto StatusRoomDTO com os dados atualizados do status de
+     *                quarto.
+     * @return Um ResponseEntity contendo um Mono de StatusRoomDTO representando o
+     *         status de quarto atualizado.
      */
     @PutMapping
-    public ResponseEntity<Mono<StatusRoomResponse>> update(@Validated(OnUpdate.class) @RequestBody StatusRoomRequest request){
-        var statusRomResponse = statusRoomService.update(StatusRoomMapper.fromRequestToStatusRoom(request))
-                             .map(StatusRoomMapper::fromStatusRoomToResponse);
+    public ResponseEntity<Mono<StatusRoomDTO>> update(@Validated(OnUpdate.class) @RequestBody StatusRoomDTO request) {
+        var statusRomResponse = statusRoomService.update(this.mapperFactory.getStatusRoomMapper().toEntity(request))
+                .map(this.mapperFactory.getStatusRoomMapper()::toDto);
         return ResponseEntity.status(HttpStatus.OK).body(statusRomResponse);
     }
 

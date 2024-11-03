@@ -66,7 +66,7 @@ public class RoomService extends GenericService<Room> implements IRoomService {
      */
     @Override
     public Flux<Room> findAll() {
-        return super.findAll()
+        return this.repository.findAllByOrderByRoomIdAsc()
                 .flatMap(room -> Mono.zip(
                         typeRoomService.findById(room.getTypeRoomId()),
                         statusRoomService.findById(room.getStatusRoomId()))

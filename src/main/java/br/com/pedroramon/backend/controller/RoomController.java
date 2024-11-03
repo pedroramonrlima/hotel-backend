@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.pedroramon.backend.dto.RoomDTO;
 import br.com.pedroramon.backend.dto.interfaces.OnUpdate;
-import br.com.pedroramon.backend.mapper.RoomMapper;
+import br.com.pedroramon.backend.mapper.MapperFactory;
 import br.com.pedroramon.backend.service.RoomService;
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
@@ -25,35 +25,37 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/rooms")
 public class RoomController {
     private final RoomService roomService;
+    private final MapperFactory mapperFactory;
 
     @Autowired
-    public RoomController(RoomService roomService) {
+    public RoomController(RoomService roomService,MapperFactory mapperFactory) {
         this.roomService = roomService;
+        this.mapperFactory = mapperFactory;
     }
 
     @GetMapping
     public Flux<RoomDTO> getAll(){
-        return this.roomService.findAll().map(RoomMapper::fromRoomToResponse);
+        return this.roomService.findAll().map(this.mapperFactory.getRoomMapper()::toDto);
     }
 
     @GetMapping("/{id}")
     public Mono<RoomDTO> findById(@PathVariable Long id) {
         return roomService.findById(id)
-                   .map(RoomMapper::fromRoomToResponse);
+                   .map(this.mapperFactory.getRoomMapper()::toDto);
     }
 
     @PostMapping
     public ResponseEntity<Mono<RoomDTO>> create(@Valid @RequestBody RoomDTO request){
-        var romResponse = roomService.save(RoomMapper.fromRequestToRoom(request))
-                             .map(RoomMapper::fromRoomToResponse);
+        var romResponse = roomService.save(this.mapperFactory.getRoomMapper().toEntity(request))
+                             .map(this.mapperFactory.getRoomMapper()::toDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(romResponse);
     }
 
     @PutMapping
     public ResponseEntity<Mono<RoomDTO>> update(@Validated(OnUpdate.class) @RequestBody RoomDTO request){
-        var romResponse = roomService.update(RoomMapper.fromRequestToRoom(request))
-                             .map(RoomMapper::fromRoomToResponse);
+        var romResponse = roomService.update(this.mapperFactory.getRoomMapper().toEntity(request))
+                             .map(this.mapperFactory.getRoomMapper()::toDto);
         return ResponseEntity.status(HttpStatus.OK).body(romResponse);
     }
 

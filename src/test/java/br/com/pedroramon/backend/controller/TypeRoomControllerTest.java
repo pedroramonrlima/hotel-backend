@@ -1,11 +1,12 @@
 package br.com.pedroramon.backend.controller;
 
-import br.com.pedroramon.backend.dto.TypeRomRequest;
-import br.com.pedroramon.backend.dto.TypeRomResponse;
+import br.com.pedroramon.backend.dto.TypeRoomDTO;
 import br.com.pedroramon.backend.exception.ResourceNotFoundException;
+import br.com.pedroramon.backend.mapper.EntityDtoMapper;
+import br.com.pedroramon.backend.mapper.MapperFactory;
 import br.com.pedroramon.backend.model.TypeRoom;
 import br.com.pedroramon.backend.service.TypeRoomService;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +16,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
 
 /**
  * Testes para o controlador de tipos de quartos {@link TypeRoomController}.
- *
- * Esta classe contém testes para os endpoints da API relacionados aos tipos de quartos,
- * utilizando o framework de testes do Spring WebFlux. Os testes incluem a verificação
- * da recuperação de todos os tipos de quartos, a criação de um novo tipo de quarto e
- * o tratamento de casos inválidos de entrada.
  */
 @WebFluxTest(TypeRoomController.class)
 class TypeRoomControllerTest {
@@ -34,71 +29,68 @@ class TypeRoomControllerTest {
     @MockBean
     private TypeRoomService service;
 
+    @MockBean
+    private MapperFactory mapperFactory;
+
+    @MockBean
+    private EntityDtoMapper<TypeRoom, TypeRoomDTO> typeRoomMapper;
+
+    @BeforeEach
+    void setup() {
+        Mockito.when(mapperFactory.getTypeRoomMapper()).thenReturn(typeRoomMapper);
+    }
+
     /**
      * Testa o endpoint GET para recuperar todos os tipos de quartos.
-     * Espera-se que retorne uma lista de tipos de quartos com status 200 OK.
      */
     @Test
     void getAllTypeRooms_ShouldReturnListOfRooms() {
-        TypeRomResponse response1 = new TypeRomResponse(1L, "Suíte");
-        TypeRomResponse response2 = new TypeRomResponse(2L, "Standard");
+        TypeRoomDTO response1 = new TypeRoomDTO(1L, "Suíte");
+        TypeRoomDTO response2 = new TypeRoomDTO(2L, "Standard");
 
-        LocalDateTime createdAt = LocalDateTime.now();
-
-        TypeRoom room1 = new TypeRoom();
-        room1.setTypeRoomId(1L);
-        room1.setName("Suíte");
-        room1.setCreatedAt(createdAt);
-
-        TypeRoom room2 = new TypeRoom();
-        room2.setTypeRoomId(2L);
-        room2.setName("Standard");
-        room2.setCreatedAt(createdAt);
+        TypeRoom room1 = new TypeRoom(1L, "Suíte");
+        TypeRoom room2 = new TypeRoom(2L, "Standard");
 
         Mockito.when(service.findAll()).thenReturn(Flux.just(room1, room2));
+        Mockito.when(typeRoomMapper.toDto(room1)).thenReturn(response1);
+        Mockito.when(typeRoomMapper.toDto(room2)).thenReturn(response2);
 
         webTestClient.get().uri("/api/type-rooms")
                 .exchange()
                 .expectStatus().isOk()
-                .expectBodyList(TypeRomResponse.class)
+                .expectBodyList(TypeRoomDTO.class)
                 .hasSize(2)
                 .contains(response1, response2);
     }
 
     /**
      * Testa o endpoint POST para criar um novo tipo de quarto.
-     * Espera-se que retorne o tipo de quarto criado com status 201 Created.
      */
     @Test
     void createTypeRoom_ShouldReturnCreatedRoom() {
-        TypeRomRequest request = new TypeRomRequest(null, "Deluxe");
-        LocalDateTime createdAt = LocalDateTime.now();
+        TypeRoomDTO request = new TypeRoomDTO(null, "Deluxe");
+        TypeRoomDTO response = new TypeRoomDTO(3L, "Deluxe");
 
-        TypeRoom room = new TypeRoom();
-        room.setId(3L);
-        room.setName("Deluxe");
-        room.setCreatedAt(createdAt);
-        TypeRomResponse response = new TypeRomResponse(3L, "Deluxe");
+        TypeRoom room = new TypeRoom(3L, "Deluxe");
 
-        Mockito.when(service.save(Mockito.any(TypeRoom.class))).thenReturn(Mono.just(room));
+        Mockito.when(typeRoomMapper.toEntity(request)).thenReturn(room);
+        Mockito.when(service.save(room)).thenReturn(Mono.just(room));
+        Mockito.when(typeRoomMapper.toDto(room)).thenReturn(response);
 
         webTestClient.post().uri("/api/type-rooms")
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isCreated()
-                .expectBody(TypeRomResponse.class)
+                .expectBody(TypeRoomDTO.class)
                 .isEqualTo(response);
     }
 
     /**
      * Testa o endpoint POST para criar um novo tipo de quarto com dados inválidos.
-     * Espera-se que retorne um status 400 Bad Request.
      */
     @Test
     void createTypeRoom_ShouldReturnBadRequest_WhenInvalidData() {
-        TypeRomRequest request = new TypeRomRequest(null, "");
-
-        Mockito.when(service.save(Mockito.any(TypeRoom.class))).thenReturn(Mono.empty());
+        TypeRoomDTO request = new TypeRoomDTO(null, "");
 
         webTestClient.post().uri("/api/type-rooms")
                 .bodyValue(request)
@@ -108,45 +100,42 @@ class TypeRoomControllerTest {
 
     /**
      * Testa o endpoint PUT para atualizar um tipo de quarto.
-     * Espera-se que retorne o tipo de quarto atualizado com status 200 OK.
      */
     @Test
     void updateTypeRoom_ShouldReturnUpdatedRoom() {
         Long roomId = 1L;
-        TypeRomRequest request = new TypeRomRequest(roomId, "Suite Renovada");
-        
-        TypeRoom updatedRoom = new TypeRoom();
-        updatedRoom.setTypeRoomId(roomId);
-        updatedRoom.setName("Suite Renovada");
-        
-        TypeRomResponse response = new TypeRomResponse(roomId, "Suite Renovada");
+        TypeRoomDTO request = new TypeRoomDTO(roomId, "Suite Renovada");
+        TypeRoomDTO response = new TypeRoomDTO(roomId, "Suite Renovada");
 
-        Mockito.when(service.update(Mockito.any(TypeRoom.class))).thenReturn(Mono.just(updatedRoom));
+        TypeRoom updatedRoom = new TypeRoom(roomId, "Suite Renovada");
+
+        Mockito.when(typeRoomMapper.toEntity(request)).thenReturn(updatedRoom);
+        Mockito.when(service.update(updatedRoom)).thenReturn(Mono.just(updatedRoom));
+        Mockito.when(typeRoomMapper.toDto(updatedRoom)).thenReturn(response);
 
         webTestClient.put().uri("/api/type-rooms")
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBody(TypeRomResponse.class)
+                .expectBody(TypeRoomDTO.class)
                 .isEqualTo(response);
     }
 
     /**
      * Testa o endpoint PUT para atualizar um tipo de quarto que não existe.
-     * Espera-se que retorne um status 404 Not Found.
      */
     @Test
     void updateTypeRoom_ShouldReturnNotFound_WhenRoomDoesNotExist() {
         Long roomId = 1L;
-        TypeRomRequest request = new TypeRomRequest(roomId, "Suite Renovada");
+        TypeRoomDTO request = new TypeRoomDTO(roomId, "Suite Renovada");
 
+        Mockito.when(typeRoomMapper.toEntity(request)).thenReturn(new TypeRoom(roomId, "Suite Renovada"));
         Mockito.when(service.update(Mockito.any(TypeRoom.class)))
-           .thenThrow(new ResourceNotFoundException("Object not found with id: " + roomId));
+               .thenThrow(new ResourceNotFoundException("Object not found with id: " + roomId));
 
         webTestClient.put().uri("/api/type-rooms")
                 .bodyValue(request)
                 .exchange()
                 .expectStatus().isNotFound();
     }
-
 }

@@ -58,6 +58,6 @@ public record RoomDTO(
     @NotNull(groups = {Default.class, OnUpdate.class})
     Long statusRoomId,
     
-    TypeRomResponse typeRoom,
-    StatusRoomResponse statusRoom
+    TypeRoomDTO typeRoom,
+    StatusRoomDTO statusRoom
 ) {}

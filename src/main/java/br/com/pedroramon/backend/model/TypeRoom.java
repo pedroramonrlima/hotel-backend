@@ -32,7 +32,7 @@ public class TypeRoom implements IEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public TypeRoom(long id, String name) {
+    public TypeRoom(Long id, String name) {
         this.typeRoomId = id;
         this.name = name;
     }

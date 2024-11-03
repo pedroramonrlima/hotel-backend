@@ -30,7 +30,7 @@ public class StatusRoom implements IEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public StatusRoom(long id, String description) {
+    public StatusRoom(Long id, String description) {
         
         this.statusRomId = id;
         this.description = description;

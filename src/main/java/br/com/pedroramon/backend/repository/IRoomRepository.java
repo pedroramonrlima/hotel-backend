@@ -1,6 +1,7 @@
 package br.com.pedroramon.backend.repository;
 
 import br.com.pedroramon.backend.model.Room;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -22,4 +23,6 @@ public interface IRoomRepository extends IRepository<Room> {
      * @return um {@link Mono} que emite o quarto encontrado ou vazio caso não exista
      */
     Mono<Room> findByRoomNumber(Integer roomNumber);
+
+    Flux<Room> findAllByOrderByRoomIdAsc();
 }
